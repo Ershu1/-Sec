@@ -1,0 +1,33 @@
+//Call函数注入攻击
+//合约函数中的secret函数只允许合约自己调用
+//可以根据查看number的值，判断是否执行的只能本合约自己调用的secret函数
+// //info函数使用了call方法，call函数可以被绕过调用合约所有的函数（方法）
+pragma solidity ^0.4.17;
+
+contract callInjection{
+
+    address public owner = msg.sender;
+    uint  public number = 1;
+    function info(bytes data){
+        //恶意调用方式：将data参数指向secret函数
+        //如果要绕过，不能直接在data参数处直接输入“secret()”，而是应该将其keccak256转换后，去前4个字节的函数签名头（能够表明是这个函数）
+        //然后填入函数签名头
+        this.call(data);
+    }
+    //函数调用只能本合约调用
+    function secret() public {
+        
+        require(this == msg.sender);
+        number += 1;
+    }
+    
+    function enecrypt(string str) public view returns(bytes32){
+        
+        return (keccak256(str));
+    }
+    
+    function bytes4Enecrypt(bytes32 en_str) view public returns(bytes4){
+        
+        return bytes4(en_str);
+    }
+}
